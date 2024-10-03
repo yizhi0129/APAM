@@ -60,7 +60,7 @@ int main(int argc, char **argv)
               prop.maxGridSize[2]);
        printf("  Peak FP32 operations per second in GFLOPS:    %d\n", 
               2 * GPU_cores * GPU_clock_rate / 1e6); 
-              //
+              // use GPU cores, GPU clock rate (kHz) to calculate peak FP32 operations per second in GFLOPS
 
        printf("\n\n==========  cudaDeviceGetAttribute ============  \n");
        printf("\nDevice %d: \"%s\"\n", dev, prop.name);
