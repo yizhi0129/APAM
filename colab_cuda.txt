@@ -1,0 +1,20 @@
+We can use Google Colab to launch a free CUDA environment in Python, 
+through which we can also compile and execute C/C++ programs.
+
+# change runtime type: python3, T4 GPU
+
+!python --version
+!nvcc --version
+!pip install nvcc4jupyter
+%load_ext nvcc4jupyter
+
+!nvidia-smi
+
+%%writefile file_name
+content...
+
+%%writefile Makefile
+
+!make
+
+!./executable_file

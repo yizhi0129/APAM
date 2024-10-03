@@ -30,9 +30,9 @@ int main(int argc, char **argv)
        printf("\n==========  cudaDeviceGetProperties ============  \n");
        cudaGetDeviceProperties(&prop, dev);
        printf("\nDevice %d: \"%s\"\n", dev, prop.name);
-       GPU_clock_rate = prop.clockRate; // kHz
+       GPU_clock_rate = prop.clockRate / 1000; // kHz --> MHz
        printf("  GPU Clock Rate (MHz):                          %d\n", 
-              GPU_clock_rate / 1000);
+              GPU_clock_rate);
        printf("  Memory Clock Rate (MHz):                       %d\n", 
               prop.memoryClockRate/1000);
        printf("  Memory Bus Width (bits):                       %d\n", 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
               prop.maxGridSize[0], prop.maxGridSize[1],
               prop.maxGridSize[2]);
        printf("  Peak FP32 operations per second in GFLOPS:    %d\n", 
-              2 * GPU_cores * GPU_clock_rate / 1e6); 
+              2 * (int)GPU_cores * (int)GPU_clock_rate / 1e6); 
               // use GPU cores, GPU clock rate (kHz) to calculate peak FP32 operations per second in GFLOPS
 
        printf("\n\n==========  cudaDeviceGetAttribute ============  \n");
