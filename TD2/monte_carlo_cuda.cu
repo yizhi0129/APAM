@@ -75,6 +75,10 @@ int main(int argv, char** argc)
 
     avg_pi /= N_THREADS_PER_BLOCK * N_BLOCKS;
 
+    // Free memory
+    free(pi);
+    cudaFree(pi_d);
+
     // Print results
     printf("Pi: %f\n", avg_pi);
     printf("Time: %f ms\n", stop - start);
