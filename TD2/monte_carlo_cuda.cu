@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <cuda.h>
-
 #include <curand_kernel.h>
+#include <cuda_runtime.h>
+#include "omp.h"    
 
 #define N_BLOCKS 512
 #define N_THREADS_PER_BLOCK 256
@@ -20,7 +21,7 @@ __global__ void monte_carlo(double* pi_d)
     curand_init(seed, id, 0, &state);
 
     // Loop over trials
-    if (id < n) 
+    if (id < N_BLOCKS * N_THREADS_PER_BLOCK) 
     {   
         for (int i = 0; i < TRIALS_PER_THREAD; i ++)
         {
@@ -30,7 +31,7 @@ __global__ void monte_carlo(double* pi_d)
                 n_success ++;
         }
         // Store pi values
-        pi_d[id] = (double)n_success * 4.0 / n_test;
+        pi_d[id] = (double)n_success * 4.0 / TRIALS_PER_THREAD;
     }
 }
 
@@ -40,13 +41,12 @@ int main(int argv, char** argc)
     double* pi, *pi_d;
     double avg_pi = 0.0;
 
-    int i;
-    double start, stop;
+    float start, stop;
     cudaEvent_t start_event, stop_event;
     
     // Allocate memory
-    pi = (double*)malloc(N_THREADS_PER_BLOCK * sizeof(double));
-    cudaMalloc(&pi_d, N_THREADS_PER_BLOCK * sizeof(double));
+    pi = (double*)malloc(N_THREADS_PER_BLOCK * N_BLOCKS * sizeof(double));
+    cudaMalloc(&pi_d, N_THREADS_PER_BLOCK * N_BLOCKS * sizeof(double));
     
     // Create events
     cudaEventCreate(&start_event);
@@ -66,20 +66,29 @@ int main(int argv, char** argc)
     // Stop timer
     cudaEventRecord(stop_event, 0);
     cudaEventSynchronize(stop_event);
-    cudaEventElapsedTime(&start, start_event);
-    cudaEventElapsedTime(&stop, stop_event);
+    cudaEventElapsedTime(&start, start_event, stop_event);
+    cudaEventElapsedTime(&stop, stop_event, stop_event);
     
-    // Sequential reduction: need to be parallelized
-    for (int i = 0; i < N_THREADS_PER_BLOCK * N_BLOCKS; i ++)
-        avg_pi += pi[i];
+    // Compute average pi parallel
+    void compute_avg_pi(float *pi) 
+    {
+        float avg_pi = 0.0;
+        #pragma omp parallel for reduction(+:avg_pi)
+        for (int i = 0; i < N_THREADS_PER_BLOCK * N_BLOCKS; i++) 
+        {
+            avg_pi += pi[i];
+        }
+        avg_pi /= N_THREADS_PER_BLOCK * N_BLOCKS;
+        printf("Average pi: %f\n", avg_pi);
+    }
 
-    avg_pi /= N_THREADS_PER_BLOCK * N_BLOCKS;
-
-    // Free memory
-    free(pi);
+    // Free memory   
     cudaFree(pi_d);
+    free(pi);
 
     // Print results
     printf("Pi: %f\n", avg_pi);
     printf("Time: %f ms\n", stop - start);
+
+    return 0;
 }

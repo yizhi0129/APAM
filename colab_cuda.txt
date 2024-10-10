@@ -17,4 +17,8 @@ content...
 
 !make
 
+# compile
+!nvcc file.cu -o file.exe
+
 !./executable_file
+
