@@ -6,7 +6,7 @@ through which we can also compile and execute C/C++ programs.
 !python --version
 !nvcc --version
 !pip install nvcc4jupyter
-%load_ext nvcc4jupyter
+!load_ext nvcc4jupyter
 
 !nvidia-smi
 
